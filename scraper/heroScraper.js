@@ -16,9 +16,9 @@ async function scrapeHero(heroId) {
   const url = `https://www.mobilelegends.com/hero/detail?channelid=3131750&heroid=${heroId}`;
 
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.waitForSelector('div::-p-text(Win Rate)', { timeout: 30000 });
-    await new Promise(r => setTimeout(r, 3000));
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    await page.waitForSelector('div::-p-text(Win Rate)', { timeout: 60000 });
+    await new Promise(r => setTimeout(r, 5000));
 
     // Cerrar banner de cookies
     try {

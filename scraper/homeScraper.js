@@ -14,8 +14,8 @@ async function scrapeHome() {
       timeout: 60000
     });
 
-    await page.waitForSelector('.swiper-slide', { timeout: 30000 });
-    await new Promise(r => setTimeout(r, 3000));
+    await page.waitForSelector('.swiper-slide', { timeout: 60000 });
+    await new Promise(r => setTimeout(r, 5000));
 
     // Cerrar banner de cookies
     try {
