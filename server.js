@@ -71,53 +71,55 @@ app.get('/api/heroes', async (req, res) => {
 // ============================================================
 // ENDPOINT: Scrapear un héroe individual
 // ============================================================
-// ============================================================
-// ENDPOINT: Scrapear un héroe individual
-// ============================================================
+
+// server.js - endpoint de scrapeo individual
 app.post('/api/scrape/hero/:heroId', async (req, res) => {
   const { heroId } = req.params;
+  const idNumerico = parseInt(heroId);
 
   try {
     console.log(`🎯 Scrapeando héroe ID: ${heroId}`);
-    const details = await scrapeHero(parseInt(heroId));
+    const details = await scrapeHero(idNumerico);
 
-    // 1. Leer el array actual de Firebase
+    // ✅ FORZAR el hero_id correcto (el de la URL, no el de la página)
+    const detailsWithCorrectId = {
+      ...details,
+      heroId: idNumerico // Sobrescribe el heroId que vino de la página
+    };
+
+    // Leer el array actual
     const snapshot = await db.ref('mlbb/heroes-detailed').once('value');
     const data = snapshot.val();
-    
-    // 2. Convertir a array (por si acaso es un objeto)
     let heroes = Array.isArray(data)
       ? data.filter(Boolean)
       : Object.values(data || {}).filter(Boolean);
 
-    // 3. Buscar si el héroe ya existe
-    const existingIndex = heroes.findIndex(h => h.data?.hero_id === parseInt(heroId));
+    // Buscar si ya existe
+    const existingIndex = heroes.findIndex(h => h.data?.hero_id === idNumerico);
 
     const newHeroData = {
-      data: { hero_id: parseInt(heroId) },
-      detail: details
+      data: { hero_id: idNumerico },
+      detail: detailsWithCorrectId
     };
 
     if (existingIndex !== -1) {
-      // Actualizar héroe existente
       heroes[existingIndex] = newHeroData;
-      console.log(`   ✅ Héroe ${heroId} actualizado`);
+      console.log(`   ✅ Héroe ${idNumerico} actualizado`);
     } else {
-      // Añadir nuevo héroe al array
       heroes.push(newHeroData);
-      console.log(`   ✅ Héroe ${heroId} añadido`);
+      console.log(`   ✅ Héroe ${idNumerico} añadido`);
     }
 
-    // 4. Guardar el array completo
     await db.ref('mlbb/heroes-detailed').set(heroes);
 
-    res.json({ success: true, heroId, details });
+    res.json({ success: true, heroId: idNumerico, details: detailsWithCorrectId });
 
   } catch (error) {
     console.error('❌ Error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
 // ============================================================
 // ENDPOINT: Scrapear héroes nuevos
 // ============================================================

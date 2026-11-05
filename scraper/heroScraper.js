@@ -143,13 +143,14 @@ async function scrapeHero(heroId) {
       });
 
       return {
+        heroId: heroId,  // ✅ Añadir el heroId que recibió la función
         name, role,
         stats: Object.keys(stats).length > 0 ? stats : null,
         lore,
         skills: skills.length > 0 ? skills : null,
         combos: combos.length > 0 ? combos : null
       };
-    });
+    },heroId);
 
     await page.close();
     // Cerramos el navegador solo si no es Browserless o si estamos en local
