@@ -11,11 +11,11 @@ async function scrapeHome() {
   try {
     await page.goto('https://www.mobilelegends.com/', {
       waitUntil: 'domcontentloaded',
-      timeout: 60000
+      timeout: 120000
     });
 
-    await page.waitForSelector('.swiper-slide', { timeout: 60000 });
-    await new Promise(r => setTimeout(r, 5000));
+    await page.waitForSelector('.swiper-slide', { timeout: 120000 });
+    await new Promise(r => setTimeout(r, 8000));
 
     // Cerrar banner de cookies
     try {
@@ -29,7 +29,7 @@ async function scrapeHome() {
           }
         }
       });
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 2000));
     } catch (e) {}
 
     const homeData = await page.evaluate(() => {

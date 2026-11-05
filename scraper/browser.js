@@ -1,5 +1,6 @@
 // scraper/browser.js
 const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
 
 async function getBrowser() {
   const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
@@ -13,13 +14,13 @@ async function getBrowser() {
     '--no-zygote',
     '--no-first-run',
     '--no-default-browser-check',
-    '--memory-pressure-off'
+    '--memory-pressure-off',
+    '--disable-blink-features=AutomationControlled' // ✅ Evitar detección de headless
   ];
 
   if (isProduction) {
     console.log('🐳 Iniciando navegador para Render...');
 
-    // 1) Intentar Chromium del sistema (/usr/bin/chromium)
     let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium';
 
     try {
@@ -27,19 +28,20 @@ async function getBrowser() {
       return await puppeteer.launch({
         executablePath,
         headless: 'new',
-        args: commonArgs
+        args: commonArgs,
+        protocolTimeout: 180000 // ✅ 3 minutos de margen para el protocolo
       });
     } catch (error) {
       console.warn('⚠️ Falló Chromium del sistema, intentando @sparticuz/chromium...', error.message);
 
-      // 2) Fallback: @sparticuz/chromium
       const chromium = require('@sparticuz/chromium');
       executablePath = await chromium.executablePath();
 
       return await puppeteer.launch({
         executablePath,
         headless: chromium.headless || 'new',
-        args: [...chromium.args, ...commonArgs]
+        args: [...chromium.args, ...commonArgs],
+        protocolTimeout: 180000 // ✅ 3 minutos
       });
     }
   }
