@@ -1,0 +1,14 @@
+# render.yaml
+services:
+  - type: web
+    name: ml-scraper-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_ML_URL
+        value: https://api-ml-0c18.onrender.com
+    # Asegúrate de añadir tus secrets de Firebase si es necesario
