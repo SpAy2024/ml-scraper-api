@@ -4,7 +4,20 @@ const express = require('express');
 const cors = require('cors');
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getDatabase } = require('firebase-admin/database');
-const serviceAccount = require('./serviceAccountKey.json');
+
+// ✅ Cargar credenciales desde variable de entorno (producción) o archivo (local)
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+  // Producción (Render): leer desde base64
+  const json = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
+  serviceAccount = JSON.parse(json);
+  console.log('✅ Firebase configurado desde variable de entorno');
+} else {
+  // Desarrollo local: leer desde archivo
+  serviceAccount = require('./serviceAccountKey.json');
+  console.log('✅ Firebase configurado desde archivo local');
+}
 
 const { scrapeHero } = require('./scraper/heroScraper');
 const { scrapeHome } = require('./scraper/homeScraper');
