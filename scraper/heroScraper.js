@@ -1,5 +1,5 @@
 // scraper/heroScraper.js
-const puppeteer = require('puppeteer');
+const { getBrowser } = require('./browser'); // ✅ Usa el navegador dinámico
 
 /**
  * Scrapea un héroe individual desde mobilelegends.com
@@ -7,12 +7,9 @@ const puppeteer = require('puppeteer');
  * @returns {Promise<Object>} Datos del héroe
  */
 async function scrapeHero(heroId) {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-  });
-
+  const browser = await getBrowser(); // ✅ Usa getBrowser()
   const page = await browser.newPage();
+  
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
   await page.setViewport({ width: 1920, height: 1080 });
 
@@ -154,11 +151,19 @@ async function scrapeHero(heroId) {
       };
     });
 
-    await browser.close();
+    await page.close();
+    // Cerramos el navegador solo si no es Browserless o si estamos en local
+    if (!process.env.BROWSERLESS_TOKEN) {
+      await browser.close();
+    }
+    
     return details;
 
   } catch (error) {
-    await browser.close();
+    await page.close();
+    if (!process.env.BROWSERLESS_TOKEN) {
+      await browser.close();
+    }
     throw error;
   }
 }

@@ -1,13 +1,10 @@
 // scraper/homeScraper.js
-const puppeteer = require('puppeteer');
+const { getBrowser } = require('./browser'); // ✅ Usa el navegador dinámico
 
 async function scrapeHome() {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-  });
-
+  const browser = await getBrowser(); // ✅ Usa getBrowser()
   const page = await browser.newPage();
+  
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
   await page.setViewport({ width: 1920, height: 1080 });
 
@@ -81,11 +78,19 @@ async function scrapeHome() {
       };
     });
 
-    await browser.close();
+    await page.close();
+    // Cerramos el navegador solo si no es Browserless o si estamos en local
+    if (!process.env.BROWSERLESS_TOKEN) {
+      await browser.close();
+    }
+    
     return homeData;
 
   } catch (error) {
-    await browser.close();
+    await page.close();
+    if (!process.env.BROWSERLESS_TOKEN) {
+      await browser.close();
+    }
     throw error;
   }
 }
