@@ -1,27 +1,28 @@
-# Dockerfile
-FROM node:18-slim
+FROM node:22-slim
 
-# Instalar dependencias del sistema necesarias para Chromium
+# Dependencias del sistema para Chromium
 RUN apt-get update && apt-get install -y \
     chromium \
     fonts-ipafont-gothic \
+    ca-certificates \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de dependencias
+# Variables de entorno para que Puppeteer use el Chromium del sistema en Render
+ENV NODE_ENV=production
+ENV RENDER=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMIUM_PATH=/usr/bin/chromium
+
 COPY package*.json ./
+RUN npm install --omit=dev
 
-# Instalar dependencias de Node
-RUN npm install
-
-# Copiar el resto del código
 COPY . .
 
-# Exponer el puerto (Render lo detecta automáticamente)
 EXPOSE 3001
 
-# Comando para iniciar la app
 CMD ["node", "server.js"]
