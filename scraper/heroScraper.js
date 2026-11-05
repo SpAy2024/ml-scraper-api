@@ -35,7 +35,7 @@ async function scrapeHero(heroId) {
       await new Promise(r => setTimeout(r, 1000));
     } catch (e) {}
 
-    const details = await page.evaluate(() => {
+    const details = await page.evaluate((heroIdFromParam) => {
       const roleKeywords = ['Tank', 'Fighter', 'Assassin', 'Mage', 'Marksman', 'Support'];
       const stats = {};
       let name = null, role = null, lore = null;
