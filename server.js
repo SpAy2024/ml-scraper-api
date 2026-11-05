@@ -71,6 +71,9 @@ app.get('/api/heroes', async (req, res) => {
 // ============================================================
 // ENDPOINT: Scrapear un héroe individual
 // ============================================================
+// ============================================================
+// ENDPOINT: Scrapear un héroe individual
+// ============================================================
 app.post('/api/scrape/hero/:heroId', async (req, res) => {
   const { heroId } = req.params;
 
@@ -78,11 +81,35 @@ app.post('/api/scrape/hero/:heroId', async (req, res) => {
     console.log(`🎯 Scrapeando héroe ID: ${heroId}`);
     const details = await scrapeHero(parseInt(heroId));
 
-    // Guardar en Firebase
-    await db.ref(`mlbb/heroes-detailed/${heroId}`).set({
+    // 1. Leer el array actual de Firebase
+    const snapshot = await db.ref('mlbb/heroes-detailed').once('value');
+    const data = snapshot.val();
+    
+    // 2. Convertir a array (por si acaso es un objeto)
+    let heroes = Array.isArray(data)
+      ? data.filter(Boolean)
+      : Object.values(data || {}).filter(Boolean);
+
+    // 3. Buscar si el héroe ya existe
+    const existingIndex = heroes.findIndex(h => h.data?.hero_id === parseInt(heroId));
+
+    const newHeroData = {
       data: { hero_id: parseInt(heroId) },
       detail: details
-    });
+    };
+
+    if (existingIndex !== -1) {
+      // Actualizar héroe existente
+      heroes[existingIndex] = newHeroData;
+      console.log(`   ✅ Héroe ${heroId} actualizado`);
+    } else {
+      // Añadir nuevo héroe al array
+      heroes.push(newHeroData);
+      console.log(`   ✅ Héroe ${heroId} añadido`);
+    }
+
+    // 4. Guardar el array completo
+    await db.ref('mlbb/heroes-detailed').set(heroes);
 
     res.json({ success: true, heroId, details });
 
@@ -91,7 +118,6 @@ app.post('/api/scrape/hero/:heroId', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
 // ============================================================
 // ENDPOINT: Scrapear héroes nuevos
 // ============================================================
