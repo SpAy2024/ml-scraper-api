@@ -21,7 +21,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
 
 const { scrapeHero } = require('./scraper/heroScraper');
 const { scrapeHome } = require('./scraper/homeScraper');
-const { scrapeNewHeroes } = require('./scraper/bulkScraper');
+const { findNewHeroes } = require('./scraper/bulkScraper'); // ✅ Nueva función
 
 const app = express();
 app.use(cors());
@@ -95,11 +95,17 @@ app.post('/api/scrape/hero/:heroId', async (req, res) => {
 // ============================================================
 // ENDPOINT: Scrapear héroes nuevos
 // ============================================================
+// server.js (endpoint nuevo)
 app.post('/api/scrape/new-heroes', async (req, res) => {
   try {
-    console.log('🔍 Iniciando scraping de héroes nuevos...');
-    const result = await scrapeNewHeroes(db);
-    res.json({ success: true, ...result });
+    console.log('🔍 Buscando héroes nuevos...');
+    const newHeroes = await findNewHeroes(db);
+    
+    res.json({ 
+      success: true, 
+      newHeroes: newHeroes.length, 
+      heroes: newHeroes // Devuelve la lista de IDs y nombres
+    });
 
   } catch (error) {
     console.error('❌ Error:', error);

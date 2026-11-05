@@ -1,14 +1,14 @@
 // scraper/bulkScraper.js
 const axios = require('axios');
-const { scrapeHero } = require('./heroScraper');
 
 /**
- * Detecta héroes nuevos comparando la API de Rone Arena con Firebase
+ * Solo compara la API de Rone Arena con Firebase para encontrar IDs nuevos.
+ * No scrapea nada (evita OOM en Render).
  * @param {Object} db - Firebase Realtime Database
- * @returns {Promise<Object>} Resultado del scraping
+ * @returns {Promise<Array>} Lista de héroes nuevos {id, name}
  */
-async function scrapeNewHeroes(db) {
-  console.log('🔍 Buscando héroes nuevos...');
+async function findNewHeroes(db) {
+  console.log('🔍 Buscando héroes nuevos (solo comparación)...');
 
   // 1. Obtener lista actual de Firebase
   const snapshot = await db.ref('mlbb/heroes-detailed').once('value');
@@ -33,38 +33,11 @@ async function scrapeNewHeroes(db) {
 
   console.log(`   Héroes nuevos encontrados: ${newHeroes.length}`);
 
-  if (newHeroes.length === 0) {
-    return { newHeroes: 0, results: [] };
-  }
-
-  // 4. Scrapear solo los nuevos
-  const results = [];
-  for (const hero of newHeroes) {
-    const heroId = hero.data?.hero_id;
-    const heroName = hero.data?.hero?.data?.name || `ID ${heroId}`;
-
-    console.log(`   Scrapeando: ${heroName} (ID: ${heroId})`);
-
-    try {
-      const details = await scrapeHero(heroId);
-      const combinedData = { ...hero, detail: details };
-
-      // Guardar en Firebase
-      await db.ref('mlbb/heroes-detailed').push(combinedData);
-
-      results.push({ heroId, name: heroName, success: true });
-      console.log(`   ✅ ${heroName} guardado`);
-
-    } catch (error) {
-      console.error(`   ❌ Error con ${heroName}:`, error.message);
-      results.push({ heroId, name: heroName, success: false, error: error.message });
-    }
-
-    // Pausa entre héroes
-    await new Promise(r => setTimeout(r, 2000));
-  }
-
-  return { newHeroes: newHeroes.length, results };
+  // 4. Devolver solo la info básica
+  return newHeroes.map(h => ({
+    id: h.data?.hero_id,
+    name: h.data?.hero?.data?.name || `Hero ${h.data?.hero_id}`
+  }));
 }
 
-module.exports = { scrapeNewHeroes };
+module.exports = { findNewHeroes };
