@@ -6,7 +6,7 @@ export async function scrapeHero(heroId) {
     console.log(`   📡 Consultando Rone Arena API para el héroe ${heroId}...`);
 
     // Usamos axios directo a la API pública
-    const response = await axios.get(`https://arena.rone.dev/api/heroes/${heroId}`, {
+   const response = await axios.get(`https://arena.fastapicloud.dev/api/heroes/${heroId}`, {
       params: { lang: 'es' },
       timeout: 30000,
       headers: {
