@@ -1,12 +1,12 @@
 {
   "name": "ml-scraper-api",
   "version": "1.0.0",
+  "type": "module",
   "description": "API para scraping de Mobile Legends",
-  "main": "server.js",
-  "type": "commonjs",
+  "main": "server.mjs",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
   },
   "dependencies": {
     "@sparticuz/chromium": "^153.0.0",
@@ -16,7 +16,6 @@
     "express": "^4.18.2",
     "firebase-admin": "^12.0.0",
     "mlbb-sdk": "^2.1.0",
-    
     "puppeteer-core": "^25.16.0"
   },
   "engines": {
