@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@sparticuz/chromium": "^153.0.0",
-    "axios": "^1.6.0",
+    "axios": "^1.21.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "firebase-admin": "^12.0.0",
+    "mlbb-sdk": "^2.1.0",
+    
     "puppeteer-core": "^25.16.0"
   },
   "engines": {
