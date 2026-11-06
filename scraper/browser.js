@@ -1,8 +1,8 @@
 // scraper/browser.js
-const puppeteer = require('puppeteer-core');
-const chromium = require('@sparticuz/chromium');
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
-async function getBrowser() {
+export async function getBrowser() {
   const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 
   const commonArgs = [
@@ -14,39 +14,32 @@ async function getBrowser() {
     '--no-zygote',
     '--no-first-run',
     '--no-default-browser-check',
-    '--memory-pressure-off',
-    '--disable-blink-features=AutomationControlled' // ✅ Evitar detección de headless
+    '--memory-pressure-off'
   ];
 
   if (isProduction) {
     console.log('🐳 Iniciando navegador para Render...');
-
     let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium';
 
     try {
-      console.log(`   Usando Chromium del sistema: ${executablePath}`);
       return await puppeteer.launch({
         executablePath,
         headless: 'new',
         args: commonArgs,
-        protocolTimeout: 180000 // ✅ 3 minutos de margen para el protocolo
+        protocolTimeout: 180000
       });
     } catch (error) {
-      console.warn('⚠️ Falló Chromium del sistema, intentando @sparticuz/chromium...', error.message);
-
-      const chromium = require('@sparticuz/chromium');
+      console.warn('⚠️ Falló Chromium del sistema, usando @sparticuz/chromium...', error.message);
       executablePath = await chromium.executablePath();
-
       return await puppeteer.launch({
         executablePath,
         headless: chromium.headless || 'new',
         args: [...chromium.args, ...commonArgs],
-        protocolTimeout: 180000 // ✅ 3 minutos
+        protocolTimeout: 180000
       });
     }
   }
 
-  // Desarrollo local
   console.log('💻 Iniciando navegador para entorno local...');
   const puppeteerFull = require('puppeteer');
   return await puppeteerFull.launch({
@@ -54,5 +47,3 @@ async function getBrowser() {
     args: commonArgs
   });
 }
-
-module.exports = { getBrowser };

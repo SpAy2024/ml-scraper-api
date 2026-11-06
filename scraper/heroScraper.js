@@ -1,30 +1,31 @@
 // scraper/heroScraper.js
-import { createMlbbClient } from 'mlbb-sdk';
+import axios from 'axios';
 
 export async function scrapeHero(heroId) {
   try {
-    console.log(`   📡 Consultando Rone Arena API (vía SDK) para el héroe ${heroId}...`);
+    console.log(`   📡 Consultando Rone Arena API para el héroe ${heroId}...`);
 
-    const client = createMlbbClient({
-      lang: 'es',
+    // Usamos axios directo a la API pública
+    const response = await axios.get(`https://arena.rone.dev/api/heroes/${heroId}`, {
+      params: { lang: 'es' },
       timeout: 30000,
-      retries: 3
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+      }
     });
 
-    // El SDK acepta el ID numérico o el nombre del héroe.
-    // Nota: Es posible que el método se llame 'getHero' o 'getHeroById'. 
-    // Si 'getHero' falla, prueba con 'getHeroById'.
-    const heroData = await client.mlbb.getHero(heroId);
+    const data = response.data;
+    const heroRecord = data.records?.[0];
 
-    // --- LOG PARA DEPURACIÓN ---
-    // Descomenta la siguiente línea para ver la estructura exacta que devuelve el SDK en los logs de Render.
-    // console.log('   📦 Estructura del SDK:', JSON.stringify(heroData, null, 2));
+    if (!heroRecord) {
+      throw new Error('No se encontraron datos del héroe en la respuesta de la API');
+    }
 
-    // --- EXTRACCIÓN DE DATOS (ajusta según la estructura real del SDK) ---
-    // Basado en el uso común del SDK, los datos suelen estar en heroData.data.hero.data
-    const heroInfo = heroData?.data?.hero?.data || heroData?.data || heroData || {};
+    const heroData = heroRecord.data;
+    const heroInfo = heroData.hero?.data || {};
     
-    // Mapear habilidades
+    // Extraer habilidades si existen
     const skills = [];
     if (heroInfo.heroskilllist) {
       heroInfo.heroskilllist.forEach(skillSet => {
@@ -39,27 +40,25 @@ export async function scrapeHero(heroId) {
       });
     }
 
-    // Construir el objeto 'details'
     const details = {
       heroId: parseInt(heroId),
       name: heroInfo.name || `Hero ${heroId}`,
       role: heroInfo.sortid?.[0]?.sort_title || 'Unknown',
       stats: {
-        // El SDK podría no incluir stats en la llamada getHero, se dejan como null.
         winRate: null,
         pickRate: null,
         banRate: null,
       },
       lore: heroInfo.story || '',
       skills: skills.length > 0 ? skills : null,
-      combos: null, // El SDK tiene un método separado para combos (getHeroSkillCombos)
+      combos: null,
     };
 
-    console.log(`   ✅ Datos de ${details.name} obtenidos vía SDK.`);
+    console.log(`   ✅ Datos de ${details.name} obtenidos de la API.`);
     return details;
 
   } catch (error) {
-    console.error(`   ❌ Error consultando Rone Arena (SDK):`, error.message);
+    console.error(`   ❌ Error consultando Rone Arena para el héroe ${heroId}:`, error.message);
     throw new Error(`No se pudo obtener datos del héroe ${heroId}: ${error.message}`);
   }
 }

@@ -1,8 +1,8 @@
 // scraper/homeScraper.js
-const { getBrowser } = require('./browser'); // ✅ Usa el navegador dinámico
+import { getBrowser } from './browser.js';
 
-async function scrapeHome() {
-  const browser = await getBrowser(); // ✅ Usa getBrowser()
+export async function scrapeHome() {
+  const browser = await getBrowser();
   const page = await browser.newPage();
   
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
@@ -33,33 +33,22 @@ async function scrapeHome() {
     } catch (e) {}
 
     const homeData = await page.evaluate(() => {
-      // ✅ SOLO el slider (swiper-slide)
       const slider = [];
       document.querySelectorAll('.swiper-slide img').forEach(img => {
         const src = img.src;
         if (src && !src.endsWith('.svg') && !slider.some(s => s.img === src)) {
-          slider.push({
-            img: src,
-            alt: img.alt || 'slide'
-          });
+          slider.push({ img: src, alt: img.alt || 'slide' });
         }
       });
 
-      // ✅ Banners promocionales (fuera del slider)
       const banners = [];
       document.querySelectorAll('[class*="banner"] img, [class*="promo"] img').forEach(img => {
         const src = img.src;
-        // Excluir íconos pequeños (SVG) y las del slider
         if (src && !src.endsWith('.svg') && !slider.some(s => s.img === src) && !banners.some(b => b.img === src)) {
-          banners.push({
-            img: src,
-            alt: img.alt || '',
-            link: img.parentElement?.href || ''
-          });
+          banners.push({ img: src, alt: img.alt || '', link: img.parentElement?.href || '' });
         }
       });
 
-      // ✅ Noticias
       const news = [];
       document.querySelectorAll('[class*="news"] a, [class*="article"] a').forEach(a => {
         const title = a.querySelector('h3, h4, [class*="title"]')?.textContent?.trim();
@@ -79,7 +68,6 @@ async function scrapeHome() {
     });
 
     await page.close();
-    // Cerramos el navegador solo si no es Browserless o si estamos en local
     if (!process.env.BROWSERLESS_TOKEN) {
       await browser.close();
     }
@@ -94,5 +82,3 @@ async function scrapeHome() {
     throw error;
   }
 }
-
-module.exports = { scrapeHome };
